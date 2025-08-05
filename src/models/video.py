@@ -99,6 +99,9 @@ class PostingJob(db.Model):
     error_message = db.Column(db.Text)
     log_data = db.Column(db.Text)  # JSON com logs detalhados
     
+    # URL do post no TikTok (para postagens manuais)
+    tiktok_post_url = db.Column(db.String(500))
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -139,6 +142,7 @@ class PostingJob(db.Model):
             'retry_count': self.retry_count,
             'max_retries': self.max_retries,
             'error_message': self.error_message,
+            'tiktok_post_url': self.tiktok_post_url,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }

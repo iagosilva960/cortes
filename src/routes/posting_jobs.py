@@ -130,6 +130,51 @@ def retry_job(job_id):
             'error': str(e)
         }), 500
 
+@posting_jobs_bp.route('/jobs/<int:job_id>/update_url', methods=['POST'])
+def update_job_url(job_id):
+    """Atualiza a URL do post no TikTok para um job"""
+    try:
+        job = PostingJob.query.get_or_404(job_id)
+        
+        data = request.get_json()
+        tiktok_url = data.get('tiktok_url', '').strip()
+        
+        if not tiktok_url:
+            return jsonify({
+                'success': False,
+                'error': 'URL do TikTok é obrigatória'
+            }), 400
+        
+        # Validar se é uma URL do TikTok
+        if 'tiktok.com' not in tiktok_url:
+            return jsonify({
+                'success': False,
+                'error': 'URL deve ser do TikTok'
+            }), 400
+        
+        job.tiktok_post_url = tiktok_url
+        job.updated_at = datetime.utcnow()
+        
+        # Se o job estava pendente ou com erro, marcar como completo
+        if job.status in ['pending', 'failed']:
+            job.update_status('completed')
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'URL do post atualizada com sucesso',
+            'job': job.to_dict()
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @posting_jobs_bp.route('/jobs/<int:job_id>/cancel', methods=['POST'])
 def cancel_job(job_id):
     """Cancela um job pendente"""
